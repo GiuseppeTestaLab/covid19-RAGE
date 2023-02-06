@@ -1,0 +1,355 @@
+---
+title: "Differential Abundance analysis"
+author: "Cristina Cheroni, modified by Emanuele Villa"
+date: 'Date: `r format(Sys.Date(), "%B %d, %Y")`'
+output:
+    html_document:
+        toc: true
+        toc_float: true
+        theme: 'yeti'
+        highlight: 'tango'
+        code_folding: hide
+params:
+    input_table: '../Result/cell_type_vs_patient_time.csv'
+    metadata: '../Result/patient_time_metadata.csv'
+    output_folder:  '../Result/diff_abundance_clusters'
+---
+
+_Last modifications 14 March 2021_
+
+This analysis is based on the workflow from 'Orchestrating Single Cell Analysis ....' at (this link)[https://osca.bioconductor.org/multi-sample-comparisons.html#performing-the-da-analysis]
+
+__Analytical choices__
+
+On the basis of preliminary explorations:
+
+ * Analysis performed on the last version of clustering 
+ * Analysis is done considering the criticality of the patients and time as label, without correcting for line (no important effect in exploratory)
+
+__Key Concepts__
+
+ * In a DA analysis, we test for significant changes in per-label cell abundance across conditions
+ * This will reveal which cell types are depleted or enriched in the examined experimental conditions
+ * The input of the analysis is a matrix with the number of cells assigned to each label (cluster or population)
+
+__Analysis Principles__
+
+ * The analysis is based on edgeR package
+ * Negative Binomial GLM methods are employed to model overdispersed count data in the presence of limited replication. Here the counts are cells per label
+ * The aim is to share information across labels to improve our estimates of the biological variability in cell abundance between replicates.
+
+
+__Analysis Step__
+ 
+ 1. Generate a DGE object containing the count matrix and sample metadata
+ 2. Optional: filter out low-abundance clusters. This could be implemented in order to avoid cluttering the result table with very rare subpopulations that contain only a handful of cells. 
+ 3. Normalization __IS NOT__ performed (no calcNormFactors() step). This means that we are only normalizing based on the total number of cells in each sample. Any changes we detect between conditions will subsequently represent differences in the proportion of cells in each cluster.
+ 4. Definition of the design matrix, with co-variable if useful
+ 5. Estimate dispersion for each cluster by estimateDisp(). The 'trend' option is turned off, since there are not enough points for its stable estimation
+ 6. Estimate of QL dispersion by glmQLFit, again without trend option, but with robust true. 
+ 7. Test for differential abundance with glmQLFTest()
+
+
+
+### 1. Environment Set Up
+
+```{r EnvironmentSetupI, collapse=TRUE}
+library(dplyr)
+library(DT)
+library(ggplot2)
+library(edgeR)
+# library(gtools)
+library(plyr)
+```
+
+```{r EnvironmentSetupII, collapse=TRUE}
+#options(stringsAsFactors=FALSE)
+```
+
+
+```{r Parameters, collapse=TRUE}
+params
+```
+
+
+****
+
+### 2. Data upload
+
+Upload of txt files reporting cell number or frequencies in samples, considering the last cell_families clusters. 
+
+
+#### 2.1 Data upload: all samples
+
+```{r Data, collapse=TRUE}
+Num <- read.table(params$input_table, header=TRUE, sep=",")
+row.names(Num) <- Num[, 1]
+Num <- Num[,-1]
+```
+
+```{r}
+Num
+```
+
+__Data checking: numbers from intial data__
+
+ * Total number of cells: `r sum(Num)` 
+ * Total number for each cluster: 
+
+```{r}
+rowSums(Num)
+```
+ * Total number for each sample: 
+
+```{r}
+colSums(Num)
+```
+
+
+
+#### 2.3 Data upload: meta information
+
+```{r DataV, collapse=TRUE}
+Meta <- read.table(params$metadata, header=TRUE,sep = ",")
+Meta
+```
+****
+
+### 3. DGE object
+
+### 3.1 Generate DGE object
+
+To be included in the DGE object, the count matrix has to be strucutured so to have Clusters as rows (as they would be genes) and samples as columns.
+
+```{r, collapse=TRUE}
+DGE <- edgeR::DGEList(Num, samples=Meta) 
+
+DGE$counts
+DGE$samples
+```
+### 4. DA by severity on patients
+
+### 4.1 Design matrix
+
+```{r, collapse=TRUE}
+Severity <- factor(DGE$samples$severity, levels=c("severe","mild","critical","moderate"), ordered=FALSE)
+Design <- data.frame(Sample=DGE$samples$patient_time, Severity)
+
+DesignMatrix <- model.matrix(~0+Severity, data=Design)
+row.names(DesignMatrix) <- Design$Sample
+```
+
+```{r, collapse=TRUE}
+DesignMatrix
+```
+
+
+### 4.2 Testing
+
+```{r, collapse=TRUE}
+DGE_St <- edgeR::estimateDisp(DGE, DesignMatrix, trend='none')
+summary(DGE_St$common.dispersion)
+#plotBCV(DGE_St, cex=1)
+```
+
+```{r, collapse=TRUE}
+FitCTLSt <- edgeR::glmQLFit(DGE_St, DesignMatrix, robust=TRUE, abundance.trend=FALSE)
+summary(FitCTLSt$var.prior)
+#plotQLDisp(FitCTLSt, cex=1)
+```
+
+### 4.3 Results comparison
+
+```{r, collapse=TRUE}
+vcol=colnames(DesignMatrix)
+combinationCol=t(combn(vcol, 2))
+for (i in seq_len(length(combinationCol[,1]))){
+  
+  contrastVector=as.numeric(colnames(DesignMatrix) %in% c(combinationCol[i,1],combinationCol[i,2]))
+  for (j in length(contrastVector):1){
+    if (contrastVector[j]==1){
+      contrastVector[j]=-1
+      break
+    }
+  }
+  # print(paste0(i,' vs ',combinationCol[i,1],combinationCol[i,2]))
+  Res <- edgeR::glmQLFTest(FitCTLSt, contrast = contrastVector)
+  Top <- edgeR::topTags(Res, n=40)
+  Top$table %>% 
+    dplyr::mutate(Cluster=row.names(Top$table)) %>%
+  dplyr::select(6, 1, 4, 5) %>% # selection of columns to be shown
+  datatable(class = 'hover', rownames = FALSE, caption=paste0('Differential Abundance ',combinationCol[i,1],' vs ',combinationCol[i,2]), filter='top', options = list(pageLength=25, autoWidth=TRUE), escape=FALSE) %>%
+  formatRound(c(2:4), c(2, 6, 3))
+  write.table(Top, file=paste0(params$output_folder, '/',combinationCol[i,1],'_vs_',combinationCol[i,2],'.tsv'), sep='\t', quote=FALSE)
+}
+```
+`
+
+****
+
+### 5. DA by severity on patients with aggregation 
+
+### 5.1 Design matrix
+
+```{r, collapse=TRUE}
+
+DGE$samples$severityAggregate=DGE$samples$severity
+DGE$samples$severityAggregate=revalue(DGE$samples$severityAggregate, c("severe"="severe+critical"))
+DGE$samples$severityAggregate=revalue(DGE$samples$severityAggregate, c("critical"="severe+critical"))
+
+Severity <- factor(DGE$samples$severityAggregate, levels=c("severe+critical","mild","moderate"), ordered=FALSE)
+Design <- data.frame(Sample=DGE$samples$patient_time, Severity)
+
+DesignMatrix <- model.matrix(~0+Severity, data=Design)
+row.names(DesignMatrix) <- Design$Sample
+```
+
+```{r, collapse=TRUE}
+DesignMatrix
+```
+
+
+### 5.2 Testing
+
+```{r, collapse=TRUE}
+DGE_St <- edgeR::estimateDisp(DGE, DesignMatrix, trend='none')
+summary(DGE_St$common.dispersion)
+#plotBCV(DGE_PatSt, cex=1)
+```
+
+```{r, collapse=TRUE}
+FitCTLSt <- edgeR::glmQLFit(DGE_St, DesignMatrix, robust=TRUE, abundance.trend=FALSE)
+summary(FitCTLSt$var.prior)
+#plotQLDisp(FitCTLSt, cex=1)
+```
+
+### 5.3 Results comparison
+
+```{r, collapse=TRUE}
+
+vcol=colnames(DesignMatrix)
+combinationCol=t(combn(vcol, 2))
+for (i in seq_len(length(combinationCol[,1]))){
+  
+  contrastVector=as.numeric(colnames(DesignMatrix) %in% c(combinationCol[i,1],combinationCol[i,2]))
+  for (j in length(contrastVector):1){
+    if (contrastVector[j]==1){
+      contrastVector[j]=-1
+      break
+    }
+  }
+
+  Res <- edgeR::glmQLFTest(FitCTLSt, contrast = contrastVector)
+  Top <- edgeR::topTags(Res, n=40)
+  
+  Top$table %>% 
+      dplyr::mutate(Cluster=row.names(Top$table)) %>%
+      dplyr::select(6, 1, 4, 5) %>% # selection of columns to be shown
+      datatable(class = 'hover', rownames = FALSE, caption=paste0('Differential Abundance ',combinationCol[i,1],' vs ',combinationCol[i,2]), filter='top', options = list(pageLength=25, autoWidth=TRUE), escape=FALSE) %>%
+      formatRound(c(2:4), c(2, 6, 3))
+  
+  OutFileName <- paste0(params$output_folder, '/',combinationCol[i,1],'_vs_',combinationCol[i,2],'.tsv')
+  write.table(Top, file=OutFileName, sep='\t', quote=FALSE)
+}
+```
+
+****
+
+### 6. DA by severity and time on patients with aggregation 
+
+#### 6.1 change in time
+```{r, collapse=TRUE}
+
+for (severity in unique(DGE$samples$severityAggregate)){
+  
+  DGETemp <- DGE[,DGE$samples$severityAggregate==severity]
+  
+  time <- factor(DGETemp$samples$time, levels=c("admission", "discharge", "post-1mo" ), ordered=FALSE)
+
+  Design <- data.frame(Sample=DGETemp$samples$patient_time, time)
+  DesignMatrix <- model.matrix(~0+time, data=Design)
+  row.names(DesignMatrix) <- Design$Sample
+
+  DGE_PatSt <- edgeR::estimateDisp(DGETemp, DesignMatrix, trend='none', min.row.sum=0)
+  FitCTLSt <- edgeR::glmQLFit(DGE_PatSt, DesignMatrix, robust=TRUE, abundance.trend=FALSE)
+
+  vcol=colnames(DesignMatrix)
+  combinationCol=t(combn(vcol, 2))
+  for (i in seq_len(length(combinationCol[,1]))){
+    
+    contrastVector=as.numeric(colnames(DesignMatrix) %in% c(combinationCol[i,1],combinationCol[i,2]))
+    for (j in length(contrastVector):1){
+      if (contrastVector[j]==1){
+        contrastVector[j]=-1
+        break
+      }
+    }
+
+    Res <- edgeR::glmQLFTest(FitCTLSt, contrast = contrastVector)
+    Top <- edgeR::topTags(Res, n=40)
+
+    Top$table %>% 
+        dplyr::mutate(Cluster=row.names(Top$table)) %>%
+        dplyr::select(6, 1, 4, 5,2) %>% # selection of columns to be shown
+        datatable(class = 'hover', rownames = FALSE, caption=paste0('Differential Abundance ',combinationCol[i,1],' vs ',combinationCol[i,2]), filter='top', options = list(pageLength=25, autoWidth=TRUE), escape=FALSE) %>%
+        formatRound(c(2:4), c(2, 6, 3))
+    
+    OutFileName <- paste0(params$output_folder,'/',severity,'_',combinationCol[i,1],'_vs_',combinationCol[i,2],'.tsv')
+    write.table(Top, file=OutFileName, sep='\t', quote=FALSE)
+
+  }
+}
+```
+
+
+#### 6.1 change in severity
+
+
+```{r, collapse=TRUE}
+
+for (time in unique(DGE$samples$time)){
+  
+  DGETemp <- DGE[,DGE$samples$time==time]
+
+  Severity <- factor(DGETemp$samples$severityAggregate, levels=c("severe+critical","mild","moderate"), ordered=FALSE)
+  Design <- data.frame(Sample=DGETemp$samples$severityAggregate, Severity)
+
+  DesignMatrix <- model.matrix(~0+Severity, data=Design)
+  row.names(DesignMatrix) <- Design$Sample
+
+  DGE_PatSt <- edgeR::estimateDisp(DGETemp, DesignMatrix, trend='none', min.row.sum=0)
+  FitCTLSt <- edgeR::glmQLFit(DGE_PatSt, DesignMatrix, robust=TRUE, abundance.trend=FALSE)
+
+  vcol=colnames(DesignMatrix)
+  combinationCol=t(combn(vcol, 2))
+  for (i in seq_len(length(combinationCol[,1]))){
+    
+    contrastVector=as.numeric(colnames(DesignMatrix) %in% c(combinationCol[i,1],combinationCol[i,2]))
+    for (j in length(contrastVector):1){
+      if (contrastVector[j]==1){
+        contrastVector[j]=-1
+        break
+      }
+    }
+
+    Res <- edgeR::glmQLFTest(FitCTLSt, contrast = contrastVector)
+    Top <- edgeR::topTags(Res, n=40)
+
+    Top$table %>% 
+        dplyr::mutate(Cluster=row.names(Top$table)) %>%
+        dplyr::select(6, 1, 4, 5,2) %>% # selection of columns to be shown
+        datatable(class = 'hover', rownames = FALSE, caption=paste0('Differential Abundance ',combinationCol[i,1],' vs ',combinationCol[i,2]), filter='top', options = list(pageLength=25, autoWidth=TRUE), escape=FALSE) %>%
+        formatRound(c(2:4), c(2, 6, 3))
+    
+    OutFileName <- paste0(params$output_folder, '/', time, '_', combinationCol[i,1], '_vs_', combinationCol[i,2], '.tsv')
+    write.table(Top, file=OutFileName, sep='\t', quote=FALSE)
+  }
+}
+```
+
+
+```{r SaveSession, collapse=TRUE}
+SessionInfo <- sessionInfo()
+Date <- date()
+```
+

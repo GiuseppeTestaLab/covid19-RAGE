@@ -1,0 +1,164 @@
+---
+title: "Covidiamo Pseudobulk"
+written by: "Alessandro Vitriolo"
+modified by: "Emanuele Villa, Matteo Bonfanti"
+date: 'Date: `r format(Sys.Date(), "%B %d, %Y")`'
+output:
+    html_document:
+        toc: true
+        toc_float: true
+        theme: 'yeti'
+        highlight: 'tango'
+        code_folding: hide
+params:
+    input_counts: '../Result/PseudoBulk/totalRaw.csv'
+    input_obs: '../Result/PseudoBulk/obsRaw.csv'
+    output_folder:  '../Result/PseudoBulk/'
+---
+
+```{r load lib}
+library(edgeR)
+library(stringr)
+```
+
+# Read and prepare input
+
+Load counts
+
+```{r read counts}
+metadata <- read.table(params$input_obs)
+head(metadata)
+```
+
+```{r read obs}
+counts.raw <- read.table(params$input_counts, head=T)
+```
+
+and filter expression (strong filter, as if it was a real bulk, you might want to play with minCount)
+
+```{r filter matrix}
+easyFilter <- function(counts,minCount,minSamples){
+  counts <- counts[which(apply(counts, 1, minCount = minCount, 
+                               minSamples = minSamples, function(x, minCount, minSamples) {
+                                 sum(x >= minCount)
+                               }) >= minSamples), ]
+}
+
+counts.f <- easyFilter(counts.raw, minCount = 25, minSamples = 10)
+```
+
+# Remove control patient
+
+```{r remove control}
+
+countsRawNoCTRL <- counts.raw[,!grepl('crtl_control',names(counts.raw))]
+metadataNoCTRL <- metadata[(metadata$time!='control'),]
+countsFilter <- counts.f[,!grepl('crtl_control',names(counts.f))]
+
+nrow(metadataNoCTRL); ncol(countsRawNoCTRL); ncol(countsFilter)
+nrow(countsFilter)
+nrow(countsRawNoCTRL)
+```
+
+# Differential expression and Enrichments on raw data
+
+```{r define edgeR wrapper function} 
+
+edg2 <- function(e,mm,gt){
+  row.names(mm) <- colnames(e)
+  dds <- calcNormFactors(DGEList(e))
+  dds <- estimateGLMRobustDisp(dds,mm)
+  dds <- glmFit(dds, mm)
+  res <- as.data.frame(topTags(glmLRT(dds, gt), nrow(e)))
+  res
+}
+
+```
+
+```{r differential expression for 1-2-3 pattern} 
+
+pattern=c(1,2,3)
+patternLabel=paste(as.character(pattern), collapse = '_')
+pattern=pattern/sum(pattern)
+
+for (population in unique(metadataNoCTRL$cell_families)){
+   print(population)
+   popCounts <- countsFilter[,grep(paste0("_",population),names(countsFilter))]
+   popMeta <- metadataNoCTRL[(metadataNoCTRL$cell_families==population),]
+   ind <- popMeta$PatientTime
+   popMeta$time <- str_replace_all(popMeta$time,"admission",as.character(pattern[1]))
+   popMeta$time <- str_replace_all(popMeta$time,"discharge",as.character(pattern[2]))
+   popMeta$time <- str_replace_all(popMeta$time,"post-1mo",as.character(pattern[3]))
+   popMeta$time <- sapply(popMeta$time, as.numeric)
+   mm <- model.matrix(~0+popMeta$patient+popMeta$time)
+   colSums(mm)
+   popTag=edg2(popCounts,gt = 'popMeta$time',mm=mm)
+   write.csv(x=popTag,file=paste0(params$output_folder,"/cell_families_",population,"_",patternLabel,".csv"))
+}
+```
+
+```{r differential expression for 1-2-2 pattern} 
+
+pattern=c(1,2,2)
+patternLabel=paste(as.character(pattern), collapse = '_')
+pattern=pattern/sum(pattern)
+
+for (population in unique(metadataNoCTRL$cell_families)){
+   print(population)
+   popCounts <- countsFilter[,grep(paste0("_",population),names(countsFilter))]
+   popMeta <- metadataNoCTRL[(metadataNoCTRL$cell_families==population),]
+   ind <- popMeta$PatientTime
+   popMeta$time <- str_replace_all(popMeta$time,"admission",as.character(pattern[1]))
+   popMeta$time <- str_replace_all(popMeta$time,"discharge",as.character(pattern[2]))
+   popMeta$time <- str_replace_all(popMeta$time,"post-1mo",as.character(pattern[3]))
+   popMeta$time <- sapply(popMeta$time, as.numeric)
+   mm <- model.matrix(~0+popMeta$patient+popMeta$time)
+   colSums(mm)
+   popTag=edg2(popCounts,gt = 'popMeta$time',mm=mm)
+   write.csv(x=popTag,file=paste0(params$output_folder,"/cell_families_",population,"_",patternLabel,".csv"))
+}
+```
+
+```{r differential expression for 1-1-2 pattern} 
+
+pattern=c(1,1,2)
+patternLabel=paste(as.character(pattern), collapse = '_')
+pattern=pattern/sum(pattern)
+
+for (population in unique(metadataNoCTRL$cell_families)){
+   print(population)
+   popCounts <- countsFilter[,grep(paste0("_",population),names(countsFilter))]
+   popMeta <- metadataNoCTRL[(metadataNoCTRL$cell_families==population),]
+   ind <- popMeta$PatientTime
+   popMeta$time <- str_replace_all(popMeta$time,"admission",as.character(pattern[1]))
+   popMeta$time <- str_replace_all(popMeta$time,"discharge",as.character(pattern[2]))
+   popMeta$time <- str_replace_all(popMeta$time,"post-1mo",as.character(pattern[3]))
+   popMeta$time <- sapply(popMeta$time, as.numeric)
+   mm <- model.matrix(~0+popMeta$patient+popMeta$time)
+   colSums(mm)
+   popTag=edg2(popCounts,gt = 'popMeta$time',mm=mm)
+   write.csv(x=popTag,file=paste0(params$output_folder,"cell_families_",population,"_",patternLabel,".csv"))
+}
+```
+
+```{r differential expression for 1-2-1 pattern} 
+
+pattern=c(1,2,1)
+patternLabel=paste(as.character(pattern), collapse = '_')
+pattern=pattern/sum(pattern)
+
+for (population in unique(metadataNoCTRL$cell_families)){
+   print(population)
+   popCounts <- countsFilter[,grep(paste0("_",population),names(countsFilter))]
+   popMeta <- metadataNoCTRL[(metadataNoCTRL$cell_families==population),]
+   ind <- popMeta$PatientTime
+   popMeta$time <- str_replace_all(popMeta$time,"admission",as.character(pattern[1]))
+   popMeta$time <- str_replace_all(popMeta$time,"discharge",as.character(pattern[2]))
+   popMeta$time <- str_replace_all(popMeta$time,"post-1mo",as.character(pattern[3]))
+   popMeta$time <- sapply(popMeta$time, as.numeric)
+   mm <- model.matrix(~0+popMeta$patient+popMeta$time)
+   colSums(mm)
+   popTag=edg2(popCounts,gt = 'popMeta$time',mm=mm)
+   write.csv(x=popTag,file=paste0(params$output_folder,"cell_families_",population,"_",patternLabel,".csv"))
+}
+```
