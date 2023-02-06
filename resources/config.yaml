@@ -14,7 +14,7 @@ subtitle: |
 pages:
 
   Test Notebook:
-    notebook: "prova.ipynb"
+    notebook: "02_abundance_analysis_cell_families.html"
     description: |
       This is a **test notebook**. A very basic example of notebook, just to exemplify how the
       GitHub Actions defined in this repository work.
