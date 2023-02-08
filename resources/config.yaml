@@ -8,10 +8,10 @@ subtitle: |
 
 pages:
 
-   Filtering - dimensionality reduction - cell annotation:
+  Filtering, dimensionality reduction, cell annotation:
     notebook: "01_gex_filtering_annotation.ipynb"
     description: |
-      Notebook that containes the preliminary steps of the single-cell data analysis:
+      Notebook that containes the preliminary steps of the single-cell data analysis
       
       1) initial quality filters 
       2) log-normalization of the counts and HVG selection
