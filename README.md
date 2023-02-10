@@ -1,5 +1,5 @@
 
-# covidiamo-padova
+# COVID19-RAGE
 
 **scRNA-seq analysis of PBMC from COVID-19 patients of the Padova cohort**
 
@@ -8,14 +8,14 @@ the single-cell RNA-seq data in the paper "RAGE engagement by SARS-CoV-2 enables
 underlies COVID-19 severity" (https://doi.org/10.1101/2022.05.22.492693).
 
 
-An html version of the notebooks is accessible [here](https://GiuseppeTestaLab.github.io/covidiamo-padova/).
+An html version of the notebooks is accessible [here](https://GiuseppeTestaLab.github.io/covid19-RAGE/).
 
 
 
 
 ## Filtering, dimensionality reduction, cell annotation
 
-Links: [jupyter notebook](01_gex_filtering_annotation.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covidiamo-padova/01_gex_filtering_annotation.html).
+Links: [jupyter notebook](01_gex_filtering_annotation.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covid19-RAGE/01_gex_filtering_annotation.html).
 
 Notebook that containes the preliminary steps of the single-cell data analysis
 
@@ -30,7 +30,7 @@ Notebook that containes the preliminary steps of the single-cell data analysis
 
 ## Differential abundance analysis
 
-Links: [html file](https://GiuseppeTestaLab.github.io/covidiamo-padova/02_abundance_analysis_cell_families.html).
+Links: [html file](https://GiuseppeTestaLab.github.io/covid19-RAGE/02_abundance_analysis_cell_families.html).
 
 RMarkdown code for the computation of the differential abundance of the
 cell families that have been defined in the dataset.
@@ -40,7 +40,7 @@ cell families that have been defined in the dataset.
 
 ## Data exploration and ingestion of external annotations
 
-Links: [jupyter notebook](03_dataset_exploration_and_ingestion.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covidiamo-padova/03_dataset_exploration_and_ingestion.html).
+Links: [jupyter notebook](03_dataset_exploration_and_ingestion.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covid19-RAGE/03_dataset_exploration_and_ingestion.html).
 
 Plots of the relevant cell metadata and
 comparison with ingested cell annotations based on
@@ -51,7 +51,7 @@ comparison with ingested cell annotations based on
 
 ## Pseudobulk data computation
 
-Links: [jupyter notebook](04_pseudobulk.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covidiamo-padova/04_pseudobulk.html).
+Links: [jupyter notebook](04_pseudobulk.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covid19-RAGE/04_pseudobulk.html).
 
 Computation of the pseudobulk data for each patient sample
 
@@ -60,7 +60,7 @@ Computation of the pseudobulk data for each patient sample
 
 ## Differential expression analysis
 
-Links: [html file](https://GiuseppeTestaLab.github.io/covidiamo-padova/05_edgeR_DE.html).
+Links: [html file](https://GiuseppeTestaLab.github.io/covid19-RAGE/05_edgeR_DE.html).
 
 Differential expression analysis of the pseudobulk data
 with edgeR GL model
@@ -70,7 +70,7 @@ with edgeR GL model
 
 ## RAGE pathway exploration
 
-Links: [jupyter notebook](06_RAGE_pathway_exploration.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covidiamo-padova/06_RAGE_pathway_exploration.html).
+Links: [jupyter notebook](06_RAGE_pathway_exploration.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covid19-RAGE/06_RAGE_pathway_exploration.html).
 
 Supervised exploration of the expression of the 
 genes included in the RAGE binding gene list
@@ -80,7 +80,7 @@ genes included in the RAGE binding gene list
 
 ## External dataset summary
 
-Links: [jupyter notebook](07_external_dataset_summary.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covidiamo-padova/07_external_dataset_summary.html).
+Links: [jupyter notebook](07_external_dataset_summary.ipynb) and [html file](https://GiuseppeTestaLab.github.io/covid19-RAGE/07_external_dataset_summary.html).
 
 Summary of the results of the RAGE exploration
 performed on the publicly available datasets of 
