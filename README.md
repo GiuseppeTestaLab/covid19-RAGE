@@ -104,8 +104,19 @@ Detailed analisys workflows are described in the following notebooks:
 
 
 
-Here you can put some final remarks.
-These will be appended at the end of the README / index page.
+## Drug repurposing analysis
+
+Links: [folder](https://github.com/GiuseppeTestaLab/covidiamo-padova/tree/main/10_drug_repurposing_analysis).
+
+Analysis of the transcriptomic signatures based on the Connectivity Map database.
+This resource has been used to:
+
+- detect whether current COVID-19 therapeutics are were able to mimic the transcriptional
+  changes occurring from in the subjects of the study from admission to recovery;
+- determine which drugs included in the CMap database are able to interfere 
+  specifically with the RAGE pathway;
+- carry our an unbiased analysis of the CMap database, seeking compounds potentially 
+  capable of reverting severity signatures across cell families.
 
 
 ---
