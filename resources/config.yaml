@@ -1,6 +1,6 @@
 
 title: "scRNA-seq analysis of PBMC from COVID-19 patients of the Padova cohort"
-short_title: "covidiamo-padova"
+short_title: "COVID19-RAGE"
 subtitle: |
    The code and the data in this repository enables the reproduction of the analyses and plots for 
    the single-cell RNA-seq data in the paper "RAGE engagement by SARS-CoV-2 enables monocyte infection and
