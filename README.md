@@ -104,6 +104,9 @@ Detailed analisys workflows are described in the following notebooks:
 
 
 
+Here you can put some final remarks.
+These will be appended at the end of the README / index page.
+
 
 ---
 *Note: this README file has been generated automatically.* <br>

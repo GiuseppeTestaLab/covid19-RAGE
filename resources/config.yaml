@@ -6,6 +6,10 @@ subtitle: |
    the single-cell RNA-seq data in the paper "RAGE engagement by SARS-CoV-2 enables monocyte infection and
    underlies COVID-19 severity" (https://doi.org/10.1101/2022.05.22.492693).
 
+final: |
+   Here you can put some final remarks.
+   These will be appended at the end of the README / index page.
+
 pages:
 
   Filtering, dimensionality reduction, cell annotation:
