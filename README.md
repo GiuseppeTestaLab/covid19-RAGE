@@ -108,15 +108,20 @@ Detailed analisys workflows are described in the following notebooks:
 
 Links: [folder](https://github.com/GiuseppeTestaLab/covidiamo-padova/tree/main/10_drug_repurposing_analysis).
 
-Analysis of the transcriptomic signatures based on the Connectivity Map database.
+Analysis of the transcriptomic signatures based on the Connectivity Map (CMap) database.
 This resource has been used to:
 
-- detect whether current COVID-19 therapeutics are were able to mimic the transcriptional
-  changes occurring from in the subjects of the study from admission to recovery;
-- determine which drugs included in the CMap database are able to interfere 
-  specifically with the RAGE pathway;
-- carry our an unbiased analysis of the CMap database, seeking compounds potentially 
-  capable of reverting severity signatures across cell families.
+- detect whether current COVID-19 therapeutics are were able to mimic 
+  the transcriptional changes occurring from in the subjects of 
+  the study from admission to recovery ([01_known_drugs.R](https://github.com/GiuseppeTestaLab/covid19-RAGE/blob/main/10_drug_repurposing_analysis/01_known_drugs.R));
+- determine which drugs included in the cMap database are able to 
+  interfere specifically with the RAGE pathway determined from 
+  Ingenuity Pathway Analysis ([02_RAGE_IPA.R](https://github.com/GiuseppeTestaLab/covid19-RAGE/blob/main/10_drug_repurposing_analysis/02_RAGE_IPA.R));
+- carry our an unbiased analysis of the CMap database, seeking compounds 
+  potentially capable of reverting severity signatures 
+  across cell families ([03_cMAP_enrich_trt_unbiased.R](https://github.com/GiuseppeTestaLab/covid19-RAGE/blob/main/10_drug_repurposing_analysis/03_cMAP_enrich_trt_unbiased.R));
+- retrieve gene expression changes upon a specific treatment 
+  from level 4 cMAP data ([04_zscore_fromGSE.R](https://github.com/GiuseppeTestaLab/covid19-RAGE/blob/main/10_drug_repurposing_analysis/04_zscore_fromGSE.R)).
 
 
 ---
