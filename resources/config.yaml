@@ -9,7 +9,7 @@ subtitle: |
 final: |
    ## Drug repurposing analysis
    
-   Links: [folder](https://github.com/GiuseppeTestaLab/covidiamo-padova/tree/main/10_drug_repurposing_analysis).
+   Links: [folder](https://github.com/GiuseppeTestaLab/covid19-RAGE/tree/main/10_drug_repurposing_analysis).
    
    Analysis of the transcriptomic signatures based on the Connectivity Map (CMap) database.
    This resource has been used to:
@@ -79,16 +79,16 @@ pages:
       
       Detailed analisys workflows are described in the following notebooks:
       
-      - [Arunachalam et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_arunachalam_2020_processed.html)
-      - [Silvin et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_silvin_2020_processed.html)
-      - [Yao et al. 2021](https://giuseppetestalab.github.io/covidiamo-padova/08_yao_2021_processed.html)
-      - [Bost et al. 2021](https://giuseppetestalab.github.io/covidiamo-padova/08_bost_2021_processed.html)
-      - [Stephenson et al. 2021](https://giuseppetestalab.github.io/covidiamo-padova/08_stephenson_2021_processed.html)
-      - [Yu et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_yu_2020_processed.html)
-      - [Combes et al. 2021](https://giuseppetestalab.github.io/covidiamo-padova/08_combes_2021_processed.html)
-      - [Su et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_su_2020_processed.html)
-      - [Zhu et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_zhu_2020_processed.html)
-      - [Lee et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_lee_2020_processed.html)
-      - [Wen et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_wen_2020_processed.html)
-      - [Schulte-Schrepping et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_schulte-schrepping_2020_processed.html)
-      - [Wilk et al. 2020](https://giuseppetestalab.github.io/covidiamo-padova/08_wilk_2020_processed.html)
+      - [Arunachalam et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_arunachalam_2020_processed.html)
+      - [Silvin et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_silvin_2020_processed.html)
+      - [Yao et al. 2021](https://giuseppetestalab.github.io/covid19-RAGE/08_yao_2021_processed.html)
+      - [Bost et al. 2021](https://giuseppetestalab.github.io/covid19-RAGE/08_bost_2021_processed.html)
+      - [Stephenson et al. 2021](https://giuseppetestalab.github.io/covid19-RAGE/08_stephenson_2021_processed.html)
+      - [Yu et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_yu_2020_processed.html)
+      - [Combes et al. 2021](https://giuseppetestalab.github.io/covid19-RAGE/08_combes_2021_processed.html)
+      - [Su et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_su_2020_processed.html)
+      - [Zhu et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_zhu_2020_processed.html)
+      - [Lee et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_lee_2020_processed.html)
+      - [Wen et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_wen_2020_processed.html)
+      - [Schulte-Schrepping et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_schulte-schrepping_2020_processed.html)
+      - [Wilk et al. 2020](https://giuseppetestalab.github.io/covid19-RAGE/08_wilk_2020_processed.html)
