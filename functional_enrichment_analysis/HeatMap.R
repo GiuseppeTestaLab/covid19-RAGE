@@ -1,6 +1,6 @@
 
 setwd("functional_enrichment_analysis")
-source("Covidiamo.functions.R")
+source("Covidiamo_functions.R")
 
 ####_____----
 ## upload and filter functional enrichment results----
