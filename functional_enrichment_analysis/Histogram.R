@@ -1,6 +1,6 @@
 
 setwd("functional_enrichment_analysis")
-source("Covidiamo.functions.R")
+source("Covidiamo_functions.R")
 
 
 # upload the selected functional enrichment datamatrix----
