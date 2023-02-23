@@ -1,92 +1,9 @@
-
 setwd("functional_enrichment_analysis")
 source("Covidiamo_functions.R")
 
-####_____----
-## upload and filter functional enrichment results----
 
-# _ upload functional enrichment results----
-funct.enrich <- read.table("data/funct.enrich.tsv", sep = "\t", header = T, quote='')
-
-
-# _ select entries in funct.enrich by FDR, max number of background genes and min number of genes per enriched functional term----
-idx.enrich.1a <- which((
-  as.numeric(as.vector(funct.enrich$fdr)) <= 0.001 &
-    as.numeric(as.vector(funct.enrich$number_of_genes_in_background)) <= 500 &
-    as.numeric(as.vector(funct.enrich$number_of_genes)) >= 3
-))
-
-
-# _ select entries in funct.enrich by dual trend patterns----
-idx.enrich.dual_patterns <- unique(unlist(sapply(
-  c("1\\.1", "1\\.2", "1\\.3", "2\\.1", "2\\.2", "2\\.3", "3\\.1", "3\\.2", "3\\.3"),
-  function(x) {
-    grep(x, funct.enrich$ID)
-  }
-)))
-
-
-# _ select entries in funct.enrich by single trend patterns----
-idx.enrich.single_patterns <- setdiff(1:nrow(funct.enrich), idx.enrich.dual_patterns)
-
-
-# _ select entries in funct.enrich by "Mild" or "SevCrit" severity----
-idx.enrich.2a <- unique(unlist(
-  sapply(
-    c("Mild", "SevCrit"),
-    function(x) {
-      grep(x, funct.enrich[, 1])
-    }
-  )
-))
-
-
-# _ select entries in funct.enrich by increasing or decreasing trend of expression----
-idx.enrich.2b <- unique(unlist(
-  sapply(
-    c("123", "321"),
-    function(x) {
-      grep(x, funct.enrich[, 1])
-    }
-  )
-))
-
-
-# _ select entries in funct.enrich by database----
-idx.enrich.2c <- grep("hsa", funct.enrich[, 3], invert = T)
-
-
-# _ select entries in funct.enrich intersecting all the above criteria----
-idx.enrich <- Reduce(
-  "intersect",
-  lapply(
-    list(
-      idx.enrich.1a,
-      idx.enrich.single_patterns,
-      idx.enrich.2a,
-      idx.enrich.2b,
-      idx.enrich.2c
-    ),
-    function(x) x
-  )
-)
-
-
-# _ merge GO IDs and GO description----
-termID <- apply(funct.enrich[, c(3, 11)], 1, paste, sep = ": ", collapse = ": ")
-
-
-# _ filtered funct.enrich----
-funct.enrich.02 <- funct.enrich[idx.enrich, ]
-
-
-# _ re-format entries (for better readability) in some fields of filtered funct.enrich.02----
-funct.enrich.02$ID <- gsub("\\.", "_", funct.enrich.02$ID)
-
-funct.enrich.02$number_of_genes <- gsub(" ", "", funct.enrich.02$number_of_genes)
-
-funct.enrich.02$number_of_genes_in_background <- gsub(" ", "", funct.enrich.02$number_of_genes_in_background)
-
+# upload selected functional enrichment results (Supplementary Table 5)----
+funct.enrich.02 <- read.csv("data/SupplementaryTable5.csv")
 
 
 ####_____----
@@ -102,13 +19,13 @@ colnames(funct.enrich.02.famnam) <- c("CellFam", "Pattern")
 
 
 # _ merge GO IDs and GO description in the filtered funct.enrich.02 ----
-termID.02 <- apply(funct.enrich.02[, c(3, 11)], 1, paste, sep = ": ", collapse = ": ")
+termID <- apply(funct.enrich.02[, c(3, 11)], 1, paste, sep = ": ", collapse = ": ")
 
 
 # _ frequencies table of GO terms and cells by patterns----
 funct.enrich.02.ta <- table(
   funct.enrich.02$ID,
-  termID.02
+  termID
 )
 
 
@@ -119,15 +36,15 @@ funct.enrich.02.ta.pv[which(funct.enrich.02.ta.pv >= 0)] <- 1
 
 
 # _ populating the data matrix w/ logged FDR values----
-for (i in rownames(funct.enrich.02.ta)) {
-  wix1 <- which(funct.enrich.02$ID %in% i)
-  wix2r <- which(rownames(funct.enrich.02.ta) %in% i)
-  x1 <- names(which(funct.enrich.02.ta[wix2r, ] > 0))
-  wix2c <- which(colnames(funct.enrich.02.ta) %in% x1)
-  wix3 <- which(termID.02[wix1] %in% x1)
-  for (i2 in wix2c) {
-    wix4 <- which(termID.02[wix1[wix3]] %in% colnames(funct.enrich.02.ta)[i2])
-    funct.enrich.02.ta.pv[wix2r, i2] <- log(-log(min(as.numeric(funct.enrich.02$fdr[wix1[wix3][wix4]]), na.rm = T), 10), 2)
+for (i in rownames(funct.enrich.02.ta)) { # i=rownames(funct.enrich.02.ta)[1]
+  idx.i1 <- which(funct.enrich.02$ID %in% i)
+  idx.i2r <- which(rownames(funct.enrich.02.ta) %in% i)
+  i1 <- names(which(funct.enrich.02.ta[idx.i2r, ] > 0))
+  idx.i2c <- which(colnames(funct.enrich.02.ta) %in% i1)
+  idx.i3 <- which(termID[idx.i1] %in% i1)
+  for (i2 in idx.i2c) { # i2=idx.i2c[2]
+    idx.i4 <- which(termID[idx.i1[idx.i3]] %in% colnames(funct.enrich.02.ta)[i2])
+    funct.enrich.02.ta.pv[idx.i2r, i2] <- log(-log(min(as.numeric(funct.enrich.02$fdr[idx.i1[idx.i3][idx.i4]]), na.rm = T), 10), 2)
   }
 }
 
@@ -148,7 +65,6 @@ idx.famnam <- unlist(sapply(
 funct.enrich.02.ta2 <- funct.enrich.02.ta.pv[idx.famnam, ]
 
 wi.app.1 <- which(apply(funct.enrich.02.ta2, 1, sum, na.rm = T) > 0)
-
 wi.app.2 <- which(apply(funct.enrich.02.ta2, 2, sum, na.rm = T) > 0)
 
 
@@ -183,29 +99,28 @@ colnames(metadatamat.hm) <- c("CellFam.0", "CellFamSev")
 
 
 # _ split first field of metadatamat.hm into severity and cells info----
-ds.tmp1 <- sapply(metadatamat.hm$CellFam.0, function(x) strsplit(x, "_")[[1]][1])
-
-ds.tmp2 <- sapply(metadatamat.hm$CellFam.0, function(x) strsplit(x, "_")[[1]][2])
+md.sev <- sapply(metadatamat.hm$CellFam.0, function(x) strsplit(x, "_")[[1]][1])
+md.cells <- sapply(metadatamat.hm$CellFam.0, function(x) strsplit(x, "_")[[1]][2])
 
 
 # _ add severity and cells population info into metadatamat.hm----
 metadatamat.hm <- cbind(
   metadatamat.hm,
-  Severity = ds.tmp1,
-  CellFam. = ds.tmp2
+  Severity = md.sev,
+  CellFam. = md.cells
 )
 
-## _ reorder datamat.hm0 and metadatamat.hm entries by severity----
+# _ reorder datamat.hm0 and metadatamat.hm entries by severity----
 oord.hm <- order(metadatamat.hm$Severity)
-
 metadatamat.hm <- metadatamat.hm[oord.hm, ]
-
 datamat.hm <- datamat.hm[, oord.hm]
 
 
-## _ group GO terms in bigger Immune-Response GO terms families----
+# _ group GO terms in bigger Immune-Response GO terms families----
 RegImmResp <- c("GO.0006954", "GO.0045088", "GO.0035456", "GO.0002697", "GO.0034340", "GO.0046598", "GO.0050688", "GO.0032479", "GO.0002825", "GO.0001818", "GO.0032480", "GO.0046596", "GO.0050727", "GO.0002698", "GO.0042742", "GO.0050777", "GO.0006959", "GO.0045089", "GO.0045824", "GO.0002683", "GO.0050786")
+
 AntigProc <- c("GO.0042605", "GO.0019886", "GO.0019884", "GO.0032395", "GO.0042613")
+
 IFNPathAndViralResp <- c("GO.0060333", "GO.0050792", "GO.0048525", "GO.1903900", "GO.0043903", "GO.0045069", "GO.1903901", "GO.0035455", "GO.0034341", "GO.0071346", "GO.0051607", "GO.0009615", "GO.0045071", "GO.0060337")
 
 
@@ -236,11 +151,9 @@ idx.BigPathFam <- lapply(
 
 # _ define colors for heatmap metadata and legends----
 hm.row.col <- rep(rgb(1, 1, 1), nrow(datamat.hm))
-
 hm.row.col <- cbind(hm.row.col, hm.row.col, hm.row.col)
 
 legend.row <- names(idx.BigPathFam)
-
 legend.row.col <- rep(rgb(1, 1, 1), length(idx.BigPathFam))
 
 
@@ -273,7 +186,7 @@ for (i in 1:length(gsubin)) datamat.hm.02.cn <- gsub(gsubin[i], gsubout[i], data
 colnames(datamat.hm.02) <- datamat.hm.02.cn
 
 
-## _ reorder cells families in datamat and metadatamat----
+# _ reorder cells families in datamat and metadatamat----
 ord.hm.cn <- order(
   metadatamat.hm$CellFam.,
   colnames(datamat.hm.02)
@@ -286,7 +199,6 @@ metadatamat.hm.02 <- metadatamat.hm[ord.hm.cn, ]
 
 # _ reformat data and metadata matrices rows and columns for plotting----
 datamat.hm.02.nr <- nrow(datamat.hm.02)
-
 datamat.hm.02.cn <- colnames(datamat.hm.02)
 
 
@@ -346,15 +258,13 @@ datamat.hm.03 <- datamat.hm.02 / max(datamat.hm.02)
 
 # _ count nr. of genes in each functional enrichment term associated w/ the RAGE pathway----
 RagePathGenes <- unlist(lapply(
-  strsplit(funct.enrich$preferredNames, ","),
+  strsplit(funct.enrich.02$preferredNames, ","),
   function(x) length(which(x %in% c("RAGE", "AGER", "FPR1", "HMGB1", "HMGB2", "S100A12", "S100A13", "S100A4", "S100A7", "S100A8", "S100A9", "S100B")))
 ))
 
 
 # _ select functional enrichment terms w/ at least 1 gene associated w/ the RAGE pathway----
 idx.RagePathGenes <- which(RagePathGenes >= 1)
-
-idx.RagePathGenes <- intersect(idx.enrich, idx.RagePathGenes)
 
 
 # _ index functional enrichment terms w/ associated to RAGE pathway within the datamat----
@@ -363,7 +273,6 @@ idx.rage.hm <- which(rownames(datamat.hm.03) %in% termID[idx.RagePathGenes])
 
 # _ define RAGE pathways colors----
 hm.row.col.02[idx.rage.hm, 3] <- rgb(1, .65, 0)
-
 hm.row.col.02[grep("RAGE", rownames(datamat.hm.03)), 3] <- rgb(1, .25, 0)
 
 colnames(hm.row.col.02) <- rep("", ncol(hm.row.col.02))
@@ -481,7 +390,4 @@ text(.27, .817, sscale.legend, font = 1, cex = .95)
 
 
 dev.off()
-
-
-
 
